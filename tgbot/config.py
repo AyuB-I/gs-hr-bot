@@ -1,14 +1,28 @@
 from dataclasses import dataclass
 
 from environs import Env
+from sqlalchemy.engine.url import URL
 
 
 @dataclass
 class DbConfig:
-    host: str
-    password: str
     user: str
+    password: str
+    host: str
+    port: int
     database: str
+    pg_password: str
+
+    # We provide a method to create a connection string easily.
+    def construct_sqlalchemy_url(self, driver="asyncpg") -> URL:
+        return URL.create(
+            drivername=f"postgresql+{driver}",
+            username=self.user,
+            password=self.password,
+            host=self.host,
+            port=self.port,
+            database=self.database
+        )
 
 
 @dataclass
@@ -41,10 +55,12 @@ def load_config(path: str = None):
             use_redis=env.bool("USE_REDIS"),
         ),
         db=DbConfig(
-            host=env.str('DB_HOST'),
-            password=env.str('DB_PASS'),
             user=env.str('DB_USER'),
-            database=env.str('DB_NAME')
+            password=env.str('DB_PASS'),
+            host=env.str('DB_HOST'),
+            port=env.int('DB_PORT'),
+            database=env.str('DB_NAME'),
+            pg_password=env.str('PG_PASS')
         ),
         misc=Miscellaneous()
     )

@@ -1,3 +1,6 @@
 aiogram>=3.0.0b3
 aioredis~=2.0
 environs~=9.0
+asyncpg~=0.26.0
+sqlalchemy~=1.4.39
+alembic~=1.8.1
