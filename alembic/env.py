@@ -8,7 +8,7 @@ from alembic import context
 from tgbot.database.models.base import metadata
 from tgbot.config import load_config
 
-from tgbot.database.models.models import LivingConditions, Educations, Origins, WorkingStyles, Forms, Departments, \
+from tgbot.database.models.models import Forms, Departments, \
     FormsDepartments, SelfAssessment, Universities, WorkedCompanies, Trips, Languages, Applications, Users, Salaries, \
     Fines, Bonuses, Tasks, Appreciations, Complaints
 

@@ -34,9 +34,9 @@ async def get_all_departments(session: AsyncSession):
 async def get_departments(session: AsyncSession, limit=None, start=1, end=None):
     """  Get departments' ids and titles by clause  """
     if end:
-        logging.info("here!")
-        query = select(Departments.department_id, Departments.title).where(Departments.department_id <= end).limit(
-            limit)
+        subquery = select(Departments.department_id.label("d_id"), Departments.title).where(Departments.department_id <= end).limit(
+            limit).order_by(Departments.department_id.desc()).subquery()
+        query = select(subquery).order_by(subquery.c.d_id)
     else:
         query = select(Departments.department_id, Departments.title).where(Departments.department_id >= start).limit(limit)
     result = await session.execute(query)

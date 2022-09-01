@@ -1,35 +1,37 @@
-from sqlalchemy import Column, BIGINT, INTEGER, SMALLINT, VARCHAR, TEXT, TIMESTAMP, DATE, ForeignKey, BOOLEAN, func
+import enum
+
+from sqlalchemy import (Column, BIGINT, INTEGER, SMALLINT, VARCHAR, TEXT, TIMESTAMP, DATE, ForeignKey, BOOLEAN, func,
+                        Enum)
 from .base import Base
 
 
-class LivingConditions(Base):
-    __tablename__ = "living_conditions"
-
-    condition_id = Column(SMALLINT, primary_key=True, autoincrement=True)
-    condition = Column(VARCHAR(32), nullable=False)
-
-
-class Educations(Base):
-    __tablename__ = "educations"
-
-    education_id = Column(SMALLINT, primary_key=True, autoincrement=True)
-    degree = Column(VARCHAR(64), nullable=False)
+#  Creating enum types
+class LivingConditionsEnum(enum.Enum):
+    FLAT = "FLAT"
+    HOUSE = "HOUSE"
 
 
-class Origins(Base):
-    __tablename__ = "origins"
-
-    origin_id = Column(SMALLINT, primary_key=True, autoincrement=True)
-    origin = Column(VARCHAR(32), nullable=False)
-
-
-class WorkingStyles(Base):
-    __tablename__ = "working_styles"
-
-    style_id = Column(SMALLINT, primary_key=True, autoincrement=True)
-    working_style = Column(VARCHAR(32), nullable=False)
+class EducationsEnum(enum.Enum):
+    SECONDARY = "SECONDARY"
+    SECONDARY_SPECIAL = "SECONDARY_SPECIAL"
+    BACHELOR = "BACHELOR"
+    MASTER = "MASTER"
 
 
+class OriginsEnum(enum.Enum):
+    FAMILIAR = "FAMILIAR"
+    TELEGRAM = "TELEGRAM"
+    INSTAGRAM = "INSTAGRAM"
+    FACEBOOK = "FACEBOOK"
+    OTHER = "OTHER"
+
+
+class WorkingStylesEnum(enum.Enum):
+    COLLECTIVE = "COLLECTIVE"
+    INDIVIDUAL = "INDIVIDUAL"
+
+
+# Creating database tables
 class Forms(Base):
     __tablename__ = "forms"
 
@@ -38,20 +40,19 @@ class Forms(Base):
     birth_date = Column(DATE, nullable=False)
     phonenum = Column(VARCHAR(20), nullable=False)
     address = Column(VARCHAR(255), nullable=False)
-    living_condition_id = Column(SMALLINT, ForeignKey("living_conditions.condition_id", ondelete="RESTRICT"),
-                                 nullable=False)
-    education_id = Column(SMALLINT, ForeignKey("educations.education_id", ondelete="RESTRICT"), nullable=False)
+    living_conditions = Column(Enum(LivingConditionsEnum), nullable=False)
+    education = Column(Enum(EducationsEnum), nullable=False)
     marital_status = Column(BOOLEAN, nullable=False)
     business_trip = Column(BOOLEAN, nullable=False)
     military_service = Column(BOOLEAN, nullable=False)
     criminal_record = Column(TEXT, nullable=False)
     driver_license = Column(VARCHAR(10), nullable=False)
     personal_car = Column(VARCHAR(64), nullable=False)
-    origin_id = Column(SMALLINT, ForeignKey("origins.origin_id", ondelete="RESTRICT"), nullable=False)
+    origin = Column(Enum(OriginsEnum), nullable=False)
     salary_last_job = Column(VARCHAR(255), nullable=False)
     overwork_agreement = Column(BOOLEAN, nullable=False)
     force_majeure_salary_agreement = Column(BOOLEAN, nullable=False)
-    working_style_id = Column(SMALLINT, ForeignKey("working_styles.style_id", ondelete="RESTRICT"), nullable=False)
+    working_style = Column(Enum(WorkingStylesEnum), nullable=False)
     health = Column(VARCHAR(255), nullable=False)
     photo_id = Column(TEXT, nullable=False)
     registered_at = Column(TIMESTAMP, server_default=func.now(), nullable=False)
@@ -89,8 +90,7 @@ class Universities(Base):
     form_id = Column(INTEGER, ForeignKey("forms.form_id", ondelete="CASCADE"), primary_key=True, nullable=False)
     name = Column(VARCHAR(255), nullable=False)
     faculty = Column(VARCHAR(255), nullable=False)
-    started_at = Column(DATE, nullable=False)
-    finished_at = Column(DATE, nullable=False)
+    finished_at = Column(SMALLINT, nullable=False)
 
 
 class WorkedCompanies(Base):
@@ -101,7 +101,7 @@ class WorkedCompanies(Base):
     name = Column(VARCHAR(255), nullable=False)
     position = Column(VARCHAR(255), nullable=False)
     started_at = Column(DATE, nullable=False)
-    finished_at = Column(DATE, nullable=False)
+    finished_at = Column(DATE, nullable=True)
 
 
 class Trips(Base):
@@ -136,7 +136,7 @@ class Users(Base):
     __tablename__ = "users"
 
     telegram_id = Column(BIGINT, primary_key=True)
-    username = Column(VARCHAR(255), nullable=False)
+    username = Column(VARCHAR(255), nullable=True)
     telegram_name = Column(VARCHAR(255), nullable=False)
     form_id = Column(INTEGER, ForeignKey("forms.form_id", ondelete="SET NULL"), unique=True, nullable=True)
     is_employee = Column(BOOLEAN, server_default="FALSE")

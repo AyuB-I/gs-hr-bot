@@ -1,8 +1,10 @@
+import logging
 from contextlib import suppress
 
 from aiogram import Router, Bot, F
 from aiogram.dispatcher.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove, ContentType
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from tgbot.database.functions.users import get_all_departments, get_departments, get_department, add_department, \
@@ -10,7 +12,7 @@ from tgbot.database.functions.users import get_all_departments, get_departments,
 from tgbot.keyboards.inline import (cancel_keyboard, raw_confirming_keyboard,
                                     make_departments_id_keyboard, department_menu_keyboard)
 from tgbot.keyboards.reply import admin_menu
-from tgbot.misc.cbdata import DepartmentsCallbackFactory
+from tgbot.misc.cbdata import MainCallbackFactory
 from tgbot.misc.states import DepartmentStates
 
 superuser_router = Router()
@@ -129,7 +131,7 @@ async def show_departments(message: Message, state: FSMContext, session: AsyncSe
 
 
 # Show next list of departments when user taps to next button
-@superuser_router.callback_query(DepartmentsCallbackFactory.filter(F.action == "next"),
+@superuser_router.callback_query(MainCallbackFactory.filter(F.category == "departments" and F.action == "next"),
                                  state=DepartmentStates.showing_departments_list)
 async def next_departments_list(call: CallbackQuery, bot: Bot, state: FSMContext, session: AsyncSession):
     await call.answer(cache_time=1)  # Simple anti-flood
@@ -145,7 +147,7 @@ async def next_departments_list(call: CallbackQuery, bot: Bot, state: FSMContext
 
 
 # Show previous list of departments when user taps to previous button
-@superuser_router.callback_query(DepartmentsCallbackFactory.filter(F.action == "previous"),
+@superuser_router.callback_query(MainCallbackFactory.filter(F.category == "departments" and F.action == "previous"),
                                  state=DepartmentStates.showing_departments_list)
 async def previous_departments_list(call: CallbackQuery, bot: Bot, state: FSMContext, session: AsyncSession):
     await call.answer(cache_time=1)  # Simple anti-flood
@@ -161,13 +163,13 @@ async def previous_departments_list(call: CallbackQuery, bot: Bot, state: FSMCon
 
 
 # Open selected department and show additional data about it
-@superuser_router.callback_query(DepartmentsCallbackFactory.filter(F.action == "open"),
+@superuser_router.callback_query(MainCallbackFactory.filter(F.category == "departments" and F.action == "open"),
                                  state=DepartmentStates.showing_departments_list)
 async def open_department(call: CallbackQuery, bot: Bot, state: FSMContext, session: AsyncSession,
-                          callback_data: DepartmentsCallbackFactory):
+                          callback_data: MainCallbackFactory):
     await call.answer(cache_time=1)  # Simple anti-flood
     state_data = await state.get_data()
-    department_id = callback_data.department_id
+    department_id = callback_data.data
     department_data = await get_department(session, department_id)
     text = f"<b>ID:</b> {department_id}\n<b>Nomi:</b> {department_data[0].capitalize()}\n" \
            f"<b>Tavsifi:</b> {department_data[1]}"
@@ -180,7 +182,7 @@ async def open_department(call: CallbackQuery, bot: Bot, state: FSMContext, sess
 
 
 # Ask user for confirm deleting selected department
-@superuser_router.callback_query(DepartmentsCallbackFactory.filter(F.action == "delete"),
+@superuser_router.callback_query(MainCallbackFactory.filter(F.category == "departments" and F.action == "delete"),
                                  state=DepartmentStates.showing_department)
 async def start_deleting_department(call: CallbackQuery, state: FSMContext):
     await call.answer(cache_time=1)  # Simple anti-flood
@@ -219,7 +221,7 @@ async def complete_deleting_department(call: CallbackQuery, bot: Bot, state: FSM
     await bot.delete_message(chat_id=call.message.chat.id, message_id=state_data["confirming_message_id"])
     await bot.delete_message(chat_id=call.message.chat.id, message_id=state_data["departments_message_id"])
     await call.message.answer(
-        f"<b>\"{state_data['department_title'].capitalize()}\" bo'limi ma'lumotlar bazasidan o'chirildi!</b>")
+        f"<u><b>\"{state_data['department_title'].capitalize()}\" bo'limi ma'lumotlar bazasidan o'chirildi!</b></u>")
     await state.clear()
     existing_departments = await get_departments(session, limit=10)
     text = f"<b>Barcha mavjud bo'limlar:</b>\n"
@@ -232,7 +234,7 @@ async def complete_deleting_department(call: CallbackQuery, bot: Bot, state: FSM
 
 
 # Go back to the departments list
-@superuser_router.callback_query(DepartmentsCallbackFactory.filter(F.action == "back"),
+@superuser_router.callback_query(MainCallbackFactory.filter(F.category == "departments" and F.action == "back"),
                                  state=DepartmentStates.showing_department)
 async def back_to_departments_list(call: CallbackQuery, bot: Bot, state: FSMContext, session: AsyncSession):
     await call.answer(cache_time=1)  # Simple anti-flood
@@ -250,7 +252,7 @@ async def back_to_departments_list(call: CallbackQuery, bot: Bot, state: FSMCont
 
 
 # Delete all messages about departments and go home
-@superuser_router.callback_query(DepartmentsCallbackFactory.filter(F.action == "home"),
+@superuser_router.callback_query(MainCallbackFactory.filter(F.category == "departments" and F.action == "home"),
                                  state=DepartmentStates)
 async def go_home(call: CallbackQuery, bot: Bot, state: FSMContext):
     await call.answer(cache_time=1)  # Simple anti-flood
