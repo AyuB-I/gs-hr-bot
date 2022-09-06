@@ -119,9 +119,9 @@ department_menu_keyboard = InlineKeyboardMarkup(
 marital_status_keyboard = InlineKeyboardMarkup(
     inline_keyboard=[
         [InlineKeyboardButton(text="Turmush qurgan", callback_data=MainCallbackFactory(category="marital_status",
-                                                                                       data="married"))],
+                                                                                       data="married").pack())],
         [InlineKeyboardButton(text="Turmush qurmagan", callback_data=MainCallbackFactory(category="marital_status",
-                                                                                         data="not_married"))],
+                                                                                         data="not_married").pack())],
         [
             InlineKeyboardButton(text="\U00002B05", callback_data="back"),  # Emoji "arrow_left"
             InlineKeyboardButton(text="\U0001F3E0", callback_data="home")  # Emoji "house"

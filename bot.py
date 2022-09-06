@@ -1,8 +1,8 @@
 import asyncio
 import logging
 
-from aiogram import Bot, Dispatcher
-from aiogram.dispatcher.fsm.storage.memory import MemoryStorage
+from aiogram import Bot, Dispatcher, Router
+from aiogram.fsm.storage.memory import MemoryStorage
 
 from tgbot.config import load_config, Config
 from tgbot.handlers.superuser import superuser_router
@@ -33,8 +33,8 @@ async def on_shutdown(db: Base):
 
 def register_global_middlewares(dp: Dispatcher, config, session_pool):
     dp.message.outer_middleware(ConfigMiddleware(config))
-    dp.message.middleware(DbSessionMiddleware(session_pool=session_pool))
     dp.callback_query.outer_middleware(ConfigMiddleware(config))
+    dp.message.middleware(DbSessionMiddleware(session_pool=session_pool))
     dp.callback_query.middleware(DbSessionMiddleware(session_pool=session_pool))
 
 
@@ -46,7 +46,6 @@ async def main():
     logger.info("Starting bot!")
     config = load_config(".env")
 
-    # db = DataBase()
     storage = MemoryStorage()
     bot = Bot(token=config.tg_bot.token, parse_mode='HTML')
     dp = Dispatcher(storage=storage)

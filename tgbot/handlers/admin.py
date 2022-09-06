@@ -2,7 +2,7 @@ import logging
 
 from aiogram import Router
 from aiogram.types import Message
-from aiogram.dispatcher.fsm.context import FSMContext
+from aiogram.fsm.context import FSMContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from tgbot.keyboards.reply import admin_menu

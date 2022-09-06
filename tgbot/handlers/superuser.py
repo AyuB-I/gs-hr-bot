@@ -2,7 +2,7 @@ import logging
 from contextlib import suppress
 
 from aiogram import Router, Bot, F
-from aiogram.dispatcher.fsm.context import FSMContext
+from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove, ContentType
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
