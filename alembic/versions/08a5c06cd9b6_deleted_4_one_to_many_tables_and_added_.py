@@ -1,8 +1,8 @@
-"""chenged professions to departments
+"""Deleted 4 one-to-many tables and added new columns to forms and created new enum types for them
 
-Revision ID: a31c36898411
+Revision ID: 08a5c06cd9b6
 Revises: 
-Create Date: 2022-08-20 14:29:37.533821
+Create Date: 2022-09-07 13:54:12.640448
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'a31c36898411'
+revision = '08a5c06cd9b6'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -26,52 +26,28 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('department_id'),
     sa.UniqueConstraint('title')
     )
-    op.create_table('educations',
-    sa.Column('education_id', sa.SMALLINT(), autoincrement=True, nullable=False),
-    sa.Column('degree', sa.VARCHAR(length=64), nullable=False),
-    sa.PrimaryKeyConstraint('education_id')
-    )
-    op.create_table('living_conditions',
-    sa.Column('condition_id', sa.SMALLINT(), autoincrement=True, nullable=False),
-    sa.Column('condition', sa.VARCHAR(length=32), nullable=False),
-    sa.PrimaryKeyConstraint('condition_id')
-    )
-    op.create_table('origins',
-    sa.Column('origin_id', sa.SMALLINT(), autoincrement=True, nullable=False),
-    sa.Column('origin', sa.VARCHAR(length=32), nullable=False),
-    sa.PrimaryKeyConstraint('origin_id')
-    )
-    op.create_table('working_styles',
-    sa.Column('style_id', sa.SMALLINT(), autoincrement=True, nullable=False),
-    sa.Column('working_style', sa.VARCHAR(length=32), nullable=False),
-    sa.PrimaryKeyConstraint('style_id')
-    )
     op.create_table('forms',
     sa.Column('form_id', sa.INTEGER(), autoincrement=True, nullable=False),
     sa.Column('full_name', sa.VARCHAR(length=255), nullable=False),
     sa.Column('birth_date', sa.DATE(), nullable=False),
     sa.Column('phonenum', sa.VARCHAR(length=20), nullable=False),
     sa.Column('address', sa.VARCHAR(length=255), nullable=False),
-    sa.Column('living_condition_id', sa.SMALLINT(), nullable=False),
-    sa.Column('education_id', sa.SMALLINT(), nullable=False),
+    sa.Column('living_conditions', sa.Enum('FLAT', 'HOUSE', name='livingconditionsenum'), nullable=False),
+    sa.Column('education', sa.Enum('SECONDARY', 'SECONDARY_SPECIAL', 'BACHELOR', 'MASTER', name='educationsenum'), nullable=False),
     sa.Column('marital_status', sa.BOOLEAN(), nullable=False),
     sa.Column('business_trip', sa.BOOLEAN(), nullable=False),
     sa.Column('military_service', sa.BOOLEAN(), nullable=False),
     sa.Column('criminal_record', sa.TEXT(), nullable=False),
     sa.Column('driver_license', sa.VARCHAR(length=10), nullable=False),
     sa.Column('personal_car', sa.VARCHAR(length=64), nullable=False),
-    sa.Column('origin_id', sa.SMALLINT(), nullable=False),
+    sa.Column('origin', sa.Enum('FAMILIAR', 'TELEGRAM', 'INSTAGRAM', 'FACEBOOK', 'OTHER', name='originsenum'), nullable=False),
     sa.Column('salary_last_job', sa.VARCHAR(length=255), nullable=False),
     sa.Column('overwork_agreement', sa.BOOLEAN(), nullable=False),
     sa.Column('force_majeure_salary_agreement', sa.BOOLEAN(), nullable=False),
-    sa.Column('working_style_id', sa.SMALLINT(), nullable=False),
+    sa.Column('working_style', sa.Enum('COLLECTIVE', 'INDIVIDUAL', name='workingstylesenum'), nullable=False),
     sa.Column('health', sa.VARCHAR(length=255), nullable=False),
     sa.Column('photo_id', sa.TEXT(), nullable=False),
     sa.Column('registered_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['education_id'], ['educations.education_id'], ondelete='RESTRICT'),
-    sa.ForeignKeyConstraint(['living_condition_id'], ['living_conditions.condition_id'], ondelete='RESTRICT'),
-    sa.ForeignKeyConstraint(['origin_id'], ['origins.origin_id'], ondelete='RESTRICT'),
-    sa.ForeignKeyConstraint(['working_style_id'], ['working_styles.style_id'], ondelete='RESTRICT'),
     sa.PrimaryKeyConstraint('form_id')
     )
     op.create_table('applications',
@@ -119,14 +95,13 @@ def upgrade() -> None:
     sa.Column('form_id', sa.INTEGER(), nullable=False),
     sa.Column('name', sa.VARCHAR(length=255), nullable=False),
     sa.Column('faculty', sa.VARCHAR(length=255), nullable=False),
-    sa.Column('started_at', sa.DATE(), nullable=False),
-    sa.Column('finished_at', sa.DATE(), nullable=False),
+    sa.Column('finished_at', sa.SMALLINT(), nullable=False),
     sa.ForeignKeyConstraint(['form_id'], ['forms.form_id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('university_id', 'form_id')
     )
     op.create_table('users',
     sa.Column('telegram_id', sa.BIGINT(), nullable=False),
-    sa.Column('username', sa.VARCHAR(length=255), nullable=False),
+    sa.Column('username', sa.VARCHAR(length=255), nullable=True),
     sa.Column('telegram_name', sa.VARCHAR(length=255), nullable=False),
     sa.Column('form_id', sa.INTEGER(), nullable=True),
     sa.Column('is_employee', sa.BOOLEAN(), server_default='FALSE', nullable=True),
@@ -141,7 +116,7 @@ def upgrade() -> None:
     sa.Column('name', sa.VARCHAR(length=255), nullable=False),
     sa.Column('position', sa.VARCHAR(length=255), nullable=False),
     sa.Column('started_at', sa.DATE(), nullable=False),
-    sa.Column('finished_at', sa.DATE(), nullable=False),
+    sa.Column('finished_at', sa.DATE(), nullable=True),
     sa.ForeignKeyConstraint(['form_id'], ['forms.form_id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('company_id')
     )
@@ -232,9 +207,10 @@ def downgrade() -> None:
     op.drop_table('forms_departments')
     op.drop_table('applications')
     op.drop_table('forms')
-    op.drop_table('working_styles')
-    op.drop_table('origins')
-    op.drop_table('living_conditions')
-    op.drop_table('educations')
     op.drop_table('departments')
+
+    op.execute('drop type livingconditionsenum;')
+    op.execute('drop type educationsenum;')
+    op.execute('drop type originsenum;')
+    op.execute('drop type workingstylesenum;')
     # ### end Alembic commands ###

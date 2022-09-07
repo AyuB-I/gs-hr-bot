@@ -50,7 +50,7 @@ async def user_start(message: Message, state: FSMContext, session: AsyncSession)
                        telegram_name=message.from_user.full_name)
     await message.answer(
         f"<b>Assalamu Alaykum</b> {message.from_user.full_name}<b>!</b>\n"
-        f"\"General Sport\" jamoasining hodimlarni boshqarish botiga xush kelibsiz!",
+        f"\"Company Name\" jamoasining hodimlarni boshqarish botiga xush kelibsiz!",
         reply_markup=user_menu)
 
 
@@ -98,7 +98,7 @@ async def ask_q3(message: Message, state: FSMContext, bot: Bot):
     text = state_data["form_text"] + f"<b>Tug'ilgan sana:</b> {message.text}\n"
     await bot.edit_message_text(text=text, chat_id=message.chat.id, message_id=state_data["form_message_id"])
     await bot.edit_message_text(
-        text="<b>Siz bilan bog'lanishimiz mumkin bo'lgan telefon raqamni kiriting.</b>\n(+998997219090)",
+        text="<b>Siz bilan bog'lanishimiz mumkin bo'lgan telefon raqamni kiriting.</b>\n(+998333360006)",
         chat_id=message.chat.id, message_id=state_data["question_message_id"], reply_markup=menu_control_keyboard)
     await state.update_data(birthday=message.text, form_text=text)
     await state.set_state(NewUserStates.q3_phonenum)
@@ -122,7 +122,7 @@ async def callback_no(call: CallbackQuery):
     """  Ask again user's phone number if previous was incorrect  """
     await call.answer(cache_time=1)  # Simple anti-flood
     await call.message.edit_text(text="<b>Siz bilan bog'lanishimiz mumkin bo'lgan telefon raqamni kiriting.</b>\n"
-                                      "(+998997219090)", reply_markup=menu_control_keyboard)
+                                      "(+998333360006)", reply_markup=menu_control_keyboard)
 
 
 @new_user_router.callback_query(text_contains="yes", state=NewUserStates.q3_phonenum)
@@ -134,8 +134,9 @@ async def ask_q4(call: CallbackQuery, state: FSMContext, bot: Bot, session: Asyn
     keyboard_data = await make_departments_keyboard(session)
     if not keyboard_data:
         await bot.delete_message(chat_id=call.message.chat.id, message_id=state_data["form_message_id"])
-        await call.message.edit_text("<u><b>Xozircha ishga olish uchun mavjud bo'limlar yo'q!</b></u>",
-                                     reply_markup=user_menu)
+        await bot.delete_message(chat_id=call.message.chat.id, message_id=state_data["question_message_id"])
+        await call.message.answer(text="<u><b>Xozircha ishga olish uchun mavjud bo'limlar yo'q!</b></u>",
+                                  reply_markup=user_menu)
         return
     await bot.edit_message_text(text=form_text, chat_id=call.message.chat.id,
                                 message_id=state_data["form_message_id"])
@@ -198,7 +199,7 @@ async def ask_q5(call: CallbackQuery, bot: Bot, state: FSMContext):
     form_text = state_data["form_text"] + f"<b>Bo'lim:</b> {state_data['department'].capitalize()}\n"
     await bot.delete_message(chat_id=call.message.chat.id, message_id=state_data["department_message_id"])
     await bot.edit_message_text(text=form_text, chat_id=call.message.chat.id, message_id=state_data["form_message_id"])
-    await call.message.edit_text("<b>Doimiy yashash manzilingizni kiriting.</b>\n(Alisher Navoiy ko'chasi 158 uy)",
+    await call.message.edit_text("<b>Doimiy yashash manzilingizni kiriting.</b>\n(Alisher Navoiy ko'chasi 150 uy)",
                                  reply_markup=menu_control_keyboard)
     await state.update_data(form_text=form_text)
     await state.set_state(NewUserStates.q5_address)
@@ -222,7 +223,7 @@ async def ask_q7(call: CallbackQuery, bot: Bot, state: FSMContext, callback_data
     await call.answer(cache_time=1)
     state_data = await state.get_data()
     living_condition_uz = "Dom" if callback_data.data == "flat" else "Hovli"
-    form_text = state_data["form_text"] + f"<b>Yashsh shroit:</b> {living_condition_uz}\n"
+    form_text = state_data["form_text"] + f"<b>Yashsh sharoit:</b> {living_condition_uz}\n"
     await bot.edit_message_text(text=form_text, chat_id=call.message.chat.id, message_id=state_data["form_message_id"])
     await call.message.edit_text("<b>Ma'lumotingiz:</b>", reply_markup=educations_keyboard)
     await state.update_data(living_conditions=callback_data.data, form_text=form_text)
@@ -337,7 +338,7 @@ async def ask_company_name_or_q10(call: CallbackQuery, bot: Bot, state: FSMConte
         await bot.edit_message_text(text=form_text, chat_id=call.message.chat.id,
                                     message_id=state_data["form_message_id"])
         question_message = await call.message.edit_text(
-            "<b>Ishlagan korxonangizning nomi nima?</b>\n(General Sport)",
+            "<b>Ishlagan korxonangizning nomi nima?</b>\n(AyuBDev)",
             reply_markup=menu_control_keyboard)
         await state.set_state(NewUserStates.company_name)
         await state.update_data(question_message_id=question_message.message_id, form_text=form_text, companies=[])
